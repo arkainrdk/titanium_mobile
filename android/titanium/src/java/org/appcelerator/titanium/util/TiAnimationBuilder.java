@@ -39,7 +39,11 @@ import android.view.ViewParent;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
+import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Transformation;
 import android.view.animation.TranslateAnimation;
 
@@ -69,6 +73,8 @@ public class TiAnimationBuilder
 	protected HashMap options;
 	protected View view;
 	protected TiViewProxy viewProxy;
+	protected int curveMode;
+	protected Interpolator curve;
 
 	public TiAnimationBuilder()
 	{
@@ -165,6 +171,30 @@ public class TiAnimationBuilder
 			backgroundColor = TiConvert.toColor(options, TiC.PROPERTY_BACKGROUND_COLOR);
 		}
 
+
+		if (options.containsKey(TiC.PROPERTY_ANIMATION_CURVE)) {
+			curveMode = TiConvert.toInt(options, TiC.PROPERTY_ANIMATION_CURVE);
+			
+			switch (curveMode) {
+				case 1:	//ANIMATION_CURVE_EASE_IN
+					curve = new AccelerateInterpolator();
+					break;
+				case 2:	//ANIMATION_CURVE_EASE_IN_OUT
+					curve = new AccelerateDecelerateInterpolator();
+					break;
+				case 3:	//ANIMATION_CURVE_EASE_OUT
+					curve = new DecelerateInterpolator();
+					break;
+				case 4:	//ANIMATION_CURVE_LINEAR
+					curve = new LinearInterpolator();
+					break;
+				default:
+					//Default to ANIMATION_CURVE_EASE_IN_OUT
+					curve = new AccelerateDecelerateInterpolator();
+					break;
+			}
+		}
+		
 		this.options = options;
 	}
 
@@ -246,6 +276,7 @@ public class TiAnimationBuilder
 
 			Animation animation = new AlphaAnimation(fromOpacity.floatValue(), toOpacity.floatValue());
 			applyOpacity = true;
+			animation.setInterpolator(curve);
 			addAnimation(as, animation);
 			animation.setAnimationListener(animationListener);
 
@@ -271,6 +302,7 @@ public class TiAnimationBuilder
 				fromBackgroundColor = Color.argb(0, 0, 0, 0);
 			}
 			Animation a = new TiColorAnimation(view, fromBackgroundColor, backgroundColor);
+			a.setInterpolator(curve);
 			addAnimation(as, a);
 		}
 
@@ -290,7 +322,7 @@ public class TiAnimationBuilder
 			}
 
 			anim = new TiMatrixAnimation(tdm, anchorX, anchorY);
-
+			anim.setInterpolator(curve);
 			addAnimation(as, anim);
 
 		}
@@ -353,6 +385,7 @@ public class TiAnimationBuilder
 				horizontal[0]-x, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, vertical[0]-y);
 
 			animation.setAnimationListener(animationListener);
+			animation.setInterpolator(curve);
 			addAnimation(as, animation);
 
 			// Will need to update layout params at end of animation
@@ -394,8 +427,8 @@ public class TiAnimationBuilder
 				sizeAnimation.setDuration(duration.longValue());
 			}
 
-			sizeAnimation.setInterpolator(new LinearInterpolator());
 			sizeAnimation.setAnimationListener(animationListener);
+			sizeAnimation.setInterpolator(curve);
 			addAnimation(as, sizeAnimation);
 
 			// Will need to update layout params at end of animation

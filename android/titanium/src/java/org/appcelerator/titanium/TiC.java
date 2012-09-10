@@ -508,6 +508,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ANIMATED = "animated";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ANIMATION_CURVE = "curve";
 	
 	/**
 	 * @module.api
